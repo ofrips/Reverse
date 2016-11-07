@@ -148,26 +148,36 @@ __$ArrayPad$ = -4					; size = 4
 
 ; 34   : 	rc=strcmp(str, "A string hjdhkjdhkdjhdkjhdkjhd dkjhdkhdkjdhkdjhdkjhdkj");
 
+	; put the address of the variable ??_C@... (which happens to store the "A string....")
+	; in eax
 	mov	eax, OFFSET ??_C@_0DH@PFMIMKOJ@A?5string?5hjdhkjdhkdjhdkjhdkjhd?5d@
+	; put the address of str array in acx
 	lea	ecx, DWORD PTR _str$[ebp]
 	npad	6
 $LL3@q2:
+	; compare the first byte of the strings
 	mov	dl, BYTE PTR [ecx]
 	cmp	dl, BYTE PTR [eax]
 	jne	SHORT $LN4@q2
+	; see if we reached the null terminator, if so, return 0
 	test	dl, dl
 	je	SHORT $LN5@q2
+	; otherwise, compare the next char
 	mov	dl, BYTE PTR [ecx+1]
 	cmp	dl, BYTE PTR [eax+1]
 	jne	SHORT $LN4@q2
+	; advance both pointers in 2 (becuase we already checked 2 chars)
 	add	ecx, 2
 	add	eax, 2
 	test	dl, dl
 	jne	SHORT $LL3@q2
 $LN5@q2:
+	; put 0 in eax, which tells us the here calling convension uses eax 
+	; to return a value (at least in this function)
 	xor	eax, eax
 	jmp	SHORT $LN6@q2
 $LN4@q2:
+	; same logic as in noopt, put 1 or -1 
 	sbb	eax, eax
 	or	eax, 1
 $LN6@q2:
