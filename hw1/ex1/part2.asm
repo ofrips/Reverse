@@ -127,3 +127,177 @@ mov	DWORD PTR [esp], eax
 call	_strcmp
 ; move the return value of strcmp to eax
 mov	DWORD PTR [ebp-12], eax
+
+
+
+q3:
+
+noopt:
+
+; loop that runs 50 times, and copies 4 bytes on each iteration from src to dst.
+; it is done by decremeting ecx by 1 each time and repeating the movsd command. 
+; this command also increases esi and edi by 4 each iteration
+mov	ecx, 50					; 00000032H
+lea	esi, DWORD PTR _src$[ebp]
+lea	edi, DWORD PTR _str$[ebp]
+rep movsd
+
+opt:
+; same as noopt.asm
+
+ex1.s:
+; same as noopt, only the compiler copies adresses to edi and esi via some
+; other registers, and intialize ecx via eax
+
+q4:
+
+noopt:
+
+; intialize i to 0
+mov	DWORD PTR _i$[ebp], 0
+jmp	SHORT $LN3@q4
+$LN2@q4:
+; increment i by 1
+mov	eax, DWORD PTR _i$[ebp]
+add	eax, 1
+mov	DWORD PTR _i$[ebp], eax
+$LN3@q4:
+; compare i to 100, if equal or greater, finish iterating
+cmp	DWORD PTR _i$[ebp], 100			; 00000064H
+jge	SHORT $LN1@q4
+; otherwise, add i to rc
+mov	ecx, DWORD PTR _rc$[ebp]
+add	ecx, DWORD PTR _i$[ebp]
+mov	DWORD PTR _rc$[ebp], ecx
+jmp	SHORT $LN2@q4
+$LN1@q4:
+
+opt:
+
+; here we can see the compiler does some magic
+; and calculates 0+1+...+99 in 25 iterations instead of 100
+; set eax, edx, esi, edi to 0
+xor	eax, eax
+xor	edx, edx
+xor	esi, esi
+xor	edi, edi
+npad	2
+$LL3@q4:
+
+; edi(i) = i + 2*(i-1)*i
+; esi(i) = 2*i + 2*(i-1)*i
+; edx(i) = 3*i + 2*(i-1)*i
+; ecx(i) = 2*(i-1)*i
+inc	edi
+add	esi, 2
+add	edx, 3
+add	ecx, eax
+add	edi, eax
+add	esi, eax
+add	edx, eax
+add	eax, 4
+cmp	eax, 100				; 00000064H
+jl	SHORT $LL3@q4
+; ecx = edi(25)+esi(25)+edx(25)+ecx(25)
+; ecx = 1225 + 1250 + 1275 + 1200 = 4950 = 0+1+2+...+99
+lea	eax, DWORD PTR [edx+esi]
+add	eax, edi
+add	ecx, eax
+
+ex1.s:
+
+; iterates 100 times, and each iteration, adds the current number
+; to a variable on a stack
+mov	DWORD PTR [ebp-12], 0
+jmp	L5
+L6:
+mov	eax, DWORD PTR [ebp-12]
+add	DWORD PTR [ebp-16], eax
+inc	DWORD PTR [ebp-12]
+L5:
+cmp	DWORD PTR [ebp-12], 99
+jle	L6
+
+
+q5:
+
+noopt.asm:
+
+; 80   : 	switch (i)
+mov	eax, DWORD PTR _i$[ebp]
+mov	DWORD PTR tv65[ebp], eax
+mov	ecx, DWORD PTR tv65[ebp]
+sub	ecx, 48					; 00000030H
+mov	DWORD PTR tv65[ebp], ecx
+; case i='u'
+cmp	DWORD PTR tv65[ebp], 69			; 00000045H
+; if tv65[ebp] is bigger than 69, it means i value is bigger
+; than 'u' ascii value => which means none of the options 
+; are met, and the switch goes to deafult case
+ja	SHORT $LN1@q5
+mov	edx, DWORD PTR tv65[ebp]
+; $LN18@q5 is a kind map array 
+; index i in the LN18@q5 array, contains index for the $LN19@q5 array,
+; which in its turn, contains the address of
+; the instructions handling the case of ascii char represented by i+48
+; for example - 'C' char is represented by 67, which means index 67-48=19 in
+; $LN18@q5 contains 4, LN19@5 at index 4 contains $LN11@q5
+; we can see that the instructions starting at $LN11@q5 are handling case 'C'.
+; we find that in all the chars which doesn't match any case we find index 12
+; and in $LN19@q5 at index 12 leads to the default case
+movzx	eax, BYTE PTR $LN18@q5[edx]
+jmp	DWORD PTR $LN19@q5[eax*4]
+;  all the cases
+$LN13@q5:
+mov	DWORD PTR _rc$[ebp], 1
+jmp	SHORT $LN14@q5
+$LN12@q5:
+mov	DWORD PTR _rc$[ebp], 9
+jmp	SHORT $LN14@q5
+$LN11@q5:
+mov	DWORD PTR _rc$[ebp], 8
+jmp	SHORT $LN14@q5
+$LN10@q5:
+mov	DWORD PTR _rc$[ebp], 7
+jmp	SHORT $LN14@q5
+$LN9@q5:
+mov	DWORD PTR _rc$[ebp], 6
+jmp	SHORT $LN14@q5
+$LN8@q5:
+mov	DWORD PTR _rc$[ebp], 5
+jmp	SHORT $LN14@q5
+$LN7@q5:
+mov	DWORD PTR _rc$[ebp], 4
+jmp	SHORT $LN14@q5
+$LN6@q5:
+mov	DWORD PTR _rc$[ebp], 11			; 0000000bH
+jmp	SHORT $LN14@q5
+$LN5@q5:
+mov	DWORD PTR _rc$[ebp], 9
+jmp	SHORT $LN14@q5
+$LN4@q5:
+mov	DWORD PTR _rc$[ebp], 9
+jmp	SHORT $LN14@q5
+$LN3@q5:
+mov	DWORD PTR _rc$[ebp], 9
+jmp	SHORT $LN14@q5
+$LN2@q5:
+mov	DWORD PTR _rc$[ebp], 2
+jmp	SHORT $LN14@q5
+$LN1@q5:
+mov	DWORD PTR _rc$[ebp], 30			; 0000001eH
+$LN14@q5:
+
+
+opt.asm:
+
+; same as noopt.asm, except here the compiler joins the cases where
+; the code puts the same value in rc, and some more minor diffrences
+; such as the index to the addresses table is saved actually as an index
+; and multiplied by 4 the get an offset
+
+ex1.s:
+
+; here we can see similar pattern to noopt.asm,  with decreasing 48 from i
+; and mapping all the possbilities between '0'-48 to 'u'-48, where chars that are
+; not part of the switch leads to the default case 
