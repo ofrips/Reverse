@@ -3,21 +3,14 @@
 
 
 int main () {
-	
-	char input[12];
+	char input[11];
+	input[10] = 0;
 	char names[] = "itamarofri";
-	fgets(input,12,stdin);
-	char* nl = strchr(input, '\n');
-	if (nl) *nl =0;
-	if (strlen(input)>10){
-		printf("Wrong ID\n");
-		return 0;
-	}
+	fgets(input, 11, stdin);
 	if (!strcmp(input,names)){
 			printf("OK\n");
 			return 0;
 	}
 	printf("Wrong ID\n");
 	return 0;
-	
 }
