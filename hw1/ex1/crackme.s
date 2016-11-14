@@ -30,8 +30,8 @@ LFB9:
 	mov	DWORD PTR [esp+4], eax ; push it to the stack
 	mov	DWORD PTR [esp], OFFSET FLAT:LC1 ;push scanf string format to the stack
 	call	_scanf ;read input from the user to the address esp+24
-	lea	eax, [esp+24] ; calaulates the address of the input string to eax
-	mov	DWORD PTR [esp+280], eax ;put the address of the input string at the last 4 bytes of the allocated array
+	lea	eax, [esp+24] ; put the address of the input string to eax
+	mov	DWORD PTR [esp+280], eax ;put the address of the input string at esp+280
 	mov	eax, DWORD PTR [esp+280] 
 	mov	DWORD PTR [esp], eax ;push the address of the input array to the stack
 	call	_strlen ;get the length of the input string in eax
